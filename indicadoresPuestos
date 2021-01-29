@@ -1,0 +1,97 @@
+function crearPeriodoTrimestral( record, headerDetailsViewID, footerIndicadoresTablaID) {
+	var recordId = 			record.id;
+	var thisUserId = 		record.field_1324_raw;
+  	var trimestre = 		record.field_1397_raw;
+  	var trimestreNombre = 	record.field_1397_raw[0].identifier;
+	var fechaRegistro = 	record.field_1317;
+	var fechaCierre = 		record.field_1318;
+	var corporacion = 		record.field_1320_raw[0].id;
+	var empresa = 			record.field_1321_raw[0].id;
+	var areafuncional = 	record.field_1669_raw;
+	var subarea = 			record.field_1360_raw;
+	var puesto = 			record.field_1670_raw;
+	var jefatura = 			Knack.models[headerDetailsViewID].attributes.field_1298_raw;
+  	var apid =				appid;
+    var apk =				apikey;
+  
+		if(Knack.models[footerIndicadoresTablaID] && Knack.models[footerIndicadoresTablaID].data && Knack.models[footerIndicadoresTablaID].data.length >0) {
+            spinnerControlMax = 0;
+            var spinnerControlUnit = 0; 
+            var filasDeTabla = Knack.models[footerIndicadoresTablaID].data.length;
+          	var fechaCierreMes1 = "";
+          	var fechaCierreMes2 = "";
+          	var fechaCierreMes3 = "";
+          	var qtrim = 	trimestreNombre.substring(5,7);
+          	var qano = 	trimestreNombre.substring(0,4);
+
+          	if ( qtrim == "Q1" ) {
+                fechaCierreMes1 = "31/01/"+qano;
+                fechaCierreMes2 = "28/02/"+qano;
+                fechaCierreMes3 = "31/03/"+qano;
+              } else if ( qtrim == "Q2" ) {
+                fechaCierreMes1 = "30/04/"+qano;
+                fechaCierreMes2 = "31/05/"+qano;
+                fechaCierreMes3 = "30/06/"+qano;
+			  } else if ( qtrim == "Q3" ) {
+                fechaCierreMes1 = "31/07/"+qano;
+                fechaCierreMes2 = "31/08/"+qano;
+                fechaCierreMes3 = "31/09/"+qano;
+			  } else if ( qtrim == "Q4" ) {
+                fechaCierreMes1 = "31/10/"+qano;
+                fechaCierreMes2 = "30/11/"+qano;
+                fechaCierreMes3 = "31/12/"+qano;
+			  }         
+          
+            for ( var i = 0, l = Knack.models[footerIndicadoresTablaID].data.models.length; i < l; i++ ) {
+              
+                  var indicador = 	Knack.models[footerIndicadoresTablaID].data.models[i].attributes.id;
+                  var metrica = 	Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_21;
+                  var condicion = 	Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_96;
+                  var meta = 		Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_97_raw;
+                  var pesoPuesto = 	Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_1202_raw;
+                  var responsable =	Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_234;
+                  var target =		Knack.models[footerIndicadoresTablaID].data.models[i].attributes.field_1562;
+                  var data = {
+                    field_1327 : fechaRegistro,
+                    field_1328 : fechaCierre,
+                    field_1426 : trimestre,
+                    field_1331 : corporacion,
+                    field_1332 : empresa,
+                    field_1334 : subarea,
+                    field_1335 : indicador,
+                    field_1336 : thisUserId,
+                    field_1671 : puesto,
+                    field_1355 : jefatura,
+                    field_1337 : metrica,
+                    field_1338 : condicion,
+                    field_1340 : meta,
+                    field_1356 : pesoPuesto,
+                    field_1358 : recordId,
+                    field_1433 : fechaCierreMes1,
+                    field_1430 : fechaCierreMes2,
+                    field_1431 : fechaCierreMes3,
+                    field_1814 : target
+                  };
+
+                  spinnerControlMax = filasDeTabla;
+                  spinnerControlUnit = spinnerControlUnit+1;
+                  sendSpinnerProgress (spinnerControlUnit);
+              
+                  semdDatawithInterval(apid, apk, data, spinnerControlUnit);
+            }  
+          Knack.views[footerIndicadoresTablaID].model.fetch();
+		} 
+}
+
+function semdDatawithInterval (apid, apk, data, spinnerControl) {
+                     $.ajax({
+                        url:'https://api.knack.com/v1/objects/'+"object_101"+'/records/',
+                        type: 'POST',
+                        headers: {"Content-Type": "application/json","X-Knack-Application-Id":apid, "X-Knack-REST-API-Key":apk},
+                        data: JSON.stringify(data),
+                        success: function (response) {
+                			console.log(spinnerControl);
+                			sendSpinnerProgress (spinnerControlUnit);                      
+                         }
+                     });
+}
